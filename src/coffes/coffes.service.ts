@@ -20,7 +20,7 @@ export class CoffesService {
   findOne(id: string) {
     const coffe= this.coffees.find(item => item.id === +id);
     if(!coffe){
-        throw new NotFoundException(`El caffe que quiere no se encuentra disponible con el codigo  ${id}`);
+        throw new NotFoundException(`El caffe que quiere no se encduentra disponible con el codigo  ${id}`);
     }
     return coffe;
   }
