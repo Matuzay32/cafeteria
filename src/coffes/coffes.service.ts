@@ -1,7 +1,8 @@
 import { HttpException, HttpStatus, Injectable, NotFoundException,HttpCode } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
-import { Repository } from 'typeorm'; // utilizo esta libreria para inyectar el modelo
+import { Event } from 'src/events/entities/event.entity';
+import { Connection, Repository } from 'typeorm'; // utilizo esta libreria para inyectar el modelo
 import { CreateCoffeeDto } from './dto/create-coffee.dto';
 import { UpdateCoffeeDto } from './dto/update-coffee.dto';
 import { Coffee } from './entities/coffe.entity';
@@ -14,6 +15,7 @@ export class CoffesService {
     private readonly coffeeRepository: Repository<Coffee>,
     @InjectRepository(Flavor)
     private readonly flavorRepository: Repository<Flavor>,
+    private readonly connection: Connection,
   ) {}
 
   findAll(paginationQuery: PaginationQueryDto) {
@@ -21,7 +23,7 @@ export class CoffesService {
     return this.coffeeRepository.find({
       relations: ['flavors'], // utilizo la relacion  flavors y pide un array de las relaciones
       skip: offset, // esta propiedad es propia del find TypeORM  esta propiedad salta la cantidad de elementos que se le indica por ejemplo si se pone 3
-                    // se saltaran los 3 primeros elementos trayendo el resto de ellos
+      // se saltaran los 3 primeros elementos trayendo el resto de ellos
       take: limit, // esta propiedad es propia del find TypeORM   esta propiedad limit hace que se traiga la cantidad de elementos que se le indique
     });
   }
@@ -38,7 +40,7 @@ export class CoffesService {
 
   async create(createCoffeeDto: CreateCoffeeDto) {
     const flavors = await Promise.all(
-      createCoffeeDto.flavors.map((name) => this.preloadFlavorByName(name)),
+      createCoffeeDto.flavors.map((favors) => this.preloadFlavorByName(favors)),
     );
 
     const coffee = this.coffeeRepository.create({
@@ -71,11 +73,38 @@ export class CoffesService {
     return this.coffeeRepository.remove(coffee);
   }
 
+  // Esta fucnion checquea si existe el gusto si existe devuelve que existe
+  // Si no existe lo crea en la tabla flavors el gusto en cuestion
   private async preloadFlavorByName(name: string): Promise<Flavor> {
     const existingFlavor = await this.flavorRepository.findOne({ name });
     if (existingFlavor) {
       return existingFlavor;
     }
     return this.flavorRepository.create({ name });
+  }
+
+  async recommendCoffee(coffee: Coffee) {
+    //transacciones de bases de datos
+    const queryRunner = this.connection.createQueryRunner();
+
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      coffee.recommendations++;
+
+      const recommendEvent = new Event();
+      recommendEvent.name = 'recommend_coffee';
+      recommendEvent.type = 'coffee';
+      recommendEvent.payload = { coffeeId: coffee.id };
+
+      await queryRunner.manager.save(coffee);
+      await queryRunner.manager.save(recommendEvent);
+
+      await queryRunner.commitTransaction();
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+    } finally {
+      await queryRunner.release();
+    }
   }
 }
