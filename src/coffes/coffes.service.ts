@@ -1,5 +1,6 @@
 import { HttpException, HttpStatus, Injectable, NotFoundException,HttpCode } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { Repository } from 'typeorm'; // utilizo esta libreria para inyectar el modelo
 import { CreateCoffeeDto } from './dto/create-coffee.dto';
 import { UpdateCoffeeDto } from './dto/update-coffee.dto';
@@ -15,9 +16,13 @@ export class CoffesService {
     private readonly flavorRepository: Repository<Flavor>,
   ) {}
 
-  findAll() {
+  findAll(paginationQuery: PaginationQueryDto) {
+    const { limit, offset } = paginationQuery;
     return this.coffeeRepository.find({
       relations: ['flavors'], // utilizo la relacion  flavors y pide un array de las relaciones
+      skip: offset, // esta propiedad es propia del find TypeORM  esta propiedad salta la cantidad de elementos que se le indica por ejemplo si se pone 3
+                    // se saltaran los 3 primeros elementos trayendo el resto de ellos
+      take: limit, // esta propiedad es propia del find TypeORM   esta propiedad limit hace que se traiga la cantidad de elementos que se le indique
     });
   }
 
@@ -33,7 +38,7 @@ export class CoffesService {
 
   async create(createCoffeeDto: CreateCoffeeDto) {
     const flavors = await Promise.all(
-      createCoffeeDto.flavors.map(name => this.preloadFlavorByName(name)),
+      createCoffeeDto.flavors.map((name) => this.preloadFlavorByName(name)),
     );
 
     const coffee = this.coffeeRepository.create({
@@ -47,7 +52,7 @@ export class CoffesService {
     const flavors =
       updateCoffeeDto.flavors &&
       (await Promise.all(
-        updateCoffeeDto.flavors.map(name => this.preloadFlavorByName(name)),
+        updateCoffeeDto.flavors.map((name) => this.preloadFlavorByName(name)),
       ));
 
     const coffee = await this.coffeeRepository.preload({
