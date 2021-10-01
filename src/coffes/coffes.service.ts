@@ -1,8 +1,9 @@
-import { HttpException, HttpStatus, Injectable, NotFoundException,HttpCode } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, NotFoundException,HttpCode, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { Event } from 'src/events/entities/event.entity';
 import { Connection, Repository } from 'typeorm'; // utilizo esta libreria para inyectar el modelo
+import { COFFEE_BRANDS } from './coffees.constants';
 import { CreateCoffeeDto } from './dto/create-coffee.dto';
 import { UpdateCoffeeDto } from './dto/update-coffee.dto';
 import { Coffee } from './entities/coffe.entity';
@@ -16,6 +17,7 @@ export class CoffesService {
     @InjectRepository(Flavor)
     private readonly flavorRepository: Repository<Flavor>,
     private readonly connection: Connection,
+    @Inject(COFFEE_BRANDS) coffeeBrands: string[],
   ) {}
 
   findAll(paginationQuery: PaginationQueryDto) {
