@@ -1,4 +1,13 @@
-import { HttpException, HttpStatus, Injectable, NotFoundException,HttpCode, Inject } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+  HttpCode,
+  Inject,
+  Scope,
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PaginationQueryDto } from 'src/common/dto/pagination-query.dto';
 import { Event } from 'src/events/entities/event.entity';
@@ -17,12 +26,17 @@ export class CoffesService {
     @InjectRepository(Flavor)
     private readonly flavorRepository: Repository<Flavor>,
     private readonly connection: Connection,
-    @Inject(COFFEE_BRANDS) coffeeBrands: string[],
-  ) {console.log(coffeeBrands)}
+    private readonly configService: ConfigService,
+    
+  ) {
+    const coffeesConfig = this.configService.get('coffees');
+    console.log(coffeesConfig);
+  }
 
-  findAll(paginationQuery: PaginationQueryDto) {
+async   findAll(paginationQuery: PaginationQueryDto) {
     const { limit, offset } = paginationQuery;
-    return this.coffeeRepository.find({
+    
+    return await this.coffeeRepository.find({
       relations: ['flavors'], // utilizo la relacion  flavors y pide un array de las relaciones
       skip: offset, // esta propiedad es propia del find TypeORM  esta propiedad salta la cantidad de elementos que se le indica por ejemplo si se pone 3
       // se saltaran los 3 primeros elementos trayendo el resto de ellos

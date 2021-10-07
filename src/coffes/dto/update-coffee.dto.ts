@@ -1,4 +1,4 @@
-import { PartialType } from "@nestjs/mapped-types"; // Uso esta libreria para tomar todos los elementos y propiedades de CreateCoffeDto
+import { PartialType } from "@nestjs/swagger"; // Uso esta libreria para tomar todos los elementos y propiedades de CreateCoffeDto
                                                     //Luego extiendo la clase para que UpdateCoffeeDto obtenga el PartialType
 
 

@@ -1,9 +1,8 @@
-import {IsString} from "class-validator"
+import { IsString } from "class-validator"
 
 export class CreateCoffeeDto {
     @IsString()
     readonly name:string
-
 
     @IsString()
     readonly brand:string
@@ -12,3 +11,7 @@ export class CreateCoffeeDto {
     @IsString({ each: true }) //El {each:true} indica que es un array
     readonly flavors:string[]
 }
+function ApiProperty() {
+    throw new Error("Function not implemented.")
+}
+
