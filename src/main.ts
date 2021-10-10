@@ -35,7 +35,7 @@ async function bootstrap() {
 
   const options = new DocumentBuilder()
   .setTitle('CAFETERIA')
-  .setDescription('Coffee application')
+  .setDescription('Coffee application ')
   .setVersion('1.0')
   .build();
 
