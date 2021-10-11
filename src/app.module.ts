@@ -7,8 +7,11 @@ import { CoffesModule } from './coffes/coffes.module';
 import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
-  imports:    [CoffesModule, MongooseModule.forRoot("mongodb://localhost:27017/nest-course")],
-  controllers:[AppController],
-  providers:  [AppService],
+  imports: [
+    CoffesModule,
+    MongooseModule.forRoot('mongodb://localhost:27017/nest-course'),
+  ],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}
